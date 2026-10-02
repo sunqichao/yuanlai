@@ -1,0 +1,65 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT OR Apache-2.0"
+authors = ["The YuanLai Developers"]
+# Flip to true per crate at P7 once names are reserved and APIs reviewed.
+publish = false
+
+[workspace.dependencies]
+yuanlai-codec = { path = "crates/yuanlai-codec", version = "0.0.0" }
+yuanlai-crypto = { path = "crates/yuanlai-crypto", version = "0.0.0" }
+yuanlai-types = { path = "crates/yuanlai-types", version = "0.0.0" }
+yuanlai-zk = { path = "crates/yuanlai-zk", version = "0.0.0" }
+yuanlai-consensus = { path = "crates/yuanlai-consensus", version = "0.0.0" }
+yuanlai-storage = { path = "crates/yuanlai-storage", version = "0.0.0" }
+yuanlai-mempool = { path = "crates/yuanlai-mempool", version = "0.0.0" }
+yuanlai-p2p = { path = "crates/yuanlai-p2p", version = "0.0.0" }
+yuanlai-miner = { path = "crates/yuanlai-miner", version = "0.0.0" }
+yuanlai-rpc = { path = "crates/yuanlai-rpc", version = "0.0.0" }
+
+# Third-party dependencies. Each runtime dependency is justified in docs/adr/.
+ed25519-dalek = "3"
+sha2 = "0.11"
+zeroize = "1.9"
+ff = { version = "0.14", default-features = false }
+halo2_gadgets = { version = "0.6", default-features = false }
+halo2_proofs = { version = "0.4", default-features = false }
+rand_core = { version = "0.10", default-features = false }
+rand = { version = "0.10", features = ["sys_rng"], default-features = false }
+serde_json = "1"
+
+# Test-only dependencies.
+hex = "0.4"
+num-bigint = "0.5"
+proptest = "1.11"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_qualifications = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+arithmetic_side_effects = "deny"
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+float_arithmetic = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"

@@ -1,0 +1,16 @@
+# Consensus-core crate: keep in sync with tools/core-clippy.toml (clippy.toml files do not merge).
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+doc-valid-idents = ["YuanLai", ".."]
+
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "iteration order is not deterministic; use BTreeMap" },
+    { path = "std::collections::HashSet", reason = "iteration order is not deterministic; use BTreeSet" },
+    { path = "std::time::SystemTime", reason = "consensus code must not read the local clock" },
+    { path = "std::time::Instant", reason = "consensus code must not read the local clock" },
+    { path = "std::fs::File", reason = "consensus code must not perform I/O" },
+    { path = "std::net::TcpStream", reason = "consensus code must not perform I/O" },
+    { path = "std::net::UdpSocket", reason = "consensus code must not perform I/O" },
+]

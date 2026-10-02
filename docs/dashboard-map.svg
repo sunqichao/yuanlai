@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="850" viewBox="0 0 1280 850" role="img" aria-labelledby="title desc">
+  <title id="title">YuanLai Dashboard 页面区域示意图</title>
+  <desc id="desc">按当前实际页面结构绘制的操作说明图，编号标注网络状态、摘要、链 ID、活动图、Credit 台账、区块表与刷新按钮。</desc>
+  <defs>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .serif { font-family: Georgia, "Times New Roman", serif; }
+      .mono { font-family: Menlo, Consolas, monospace; }
+      .ink { fill: #142421; }
+      .muted { fill: #60716d; }
+      .line { stroke: #d8e0dd; }
+      .badge { fill: #d9f56b; stroke: #12332e; stroke-width: 2; }
+      .badge-text { fill: #12332e; font: 700 17px Menlo, Consolas, monospace; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+  </defs>
+  <rect width="1280" height="850" fill="#e9efec"/>
+  <rect x="28" y="24" width="1224" height="802" rx="3" fill="#fcfdfc" stroke="#cbd6d1"/>
+  <rect x="28" y="24" width="1224" height="70" fill="#12332e"/>
+  <rect x="28" y="90" width="1224" height="4" fill="#d9f56b"/>
+  <circle cx="68" cy="59" r="18" fill="#d9f56b"/>
+  <text x="68" y="64" class="mono" text-anchor="middle" font-size="13" font-weight="700" fill="#12332e">YL</text>
+  <text x="100" y="56" class="sans" font-size="18" font-weight="700" fill="#f4f7f3">YuanLai</text>
+  <text x="100" y="75" class="mono" font-size="10" fill="#aebeb8">猿来 · OPEN CHAIN</text>
+  <text x="894" y="63" class="mono" font-size="12" fill="#c1cdc8">NETWORK · REGTEST</text>
+  <circle cx="1084" cy="59" r="5" fill="#d9f56b"/>
+  <text x="1098" y="63" class="mono" font-size="12" fill="#d9f56b">CONNECTED</text>
+  <rect x="1190" y="41" width="38" height="38" rx="4" fill="none" stroke="#ffffff70"/>
+  <path d="M1201 54a8 8 0 0 1 14-2l2 3m0-5v5h-5M1217 64a8 8 0 0 1-14 2l-2-3m0 5v-5h5" fill="none" stroke="#f4f7f3" stroke-width="1.5"/>
+  <circle cx="1164" cy="38" r="15" class="badge"/><text x="1164" y="38" class="badge-text">1</text>
+  <circle cx="1209" cy="35" r="15" class="badge"/><text x="1209" y="35" class="badge-text">7</text>
+
+  <text x="66" y="132" class="mono" font-size="11" fill="#087b68">NODE / LIVE VIEW</text>
+  <text x="66" y="174" class="serif ink" font-size="38">Chain overview</text>
+  <text x="760" y="145" class="sans muted" font-size="13">当前 datadir 的活动链只读快照</text>
+  <text x="760" y="165" class="sans muted" font-size="13">展示前会从创世块开始重放验证</text>
+
+  <rect x="66" y="198" width="1148" height="132" fill="#ffffff" stroke="#d8e0dd"/>
+  <rect x="66" y="198" width="1148" height="3" fill="#087b68"/>
+  <line x1="353" y1="201" x2="353" y2="330" class="line"/>
+  <line x1="640" y1="201" x2="640" y2="330" class="line"/>
+  <line x1="927" y1="201" x2="927" y2="330" class="line"/>
+  <text x="94" y="231" class="mono muted" font-size="11">CURRENT HEIGHT</text>
+  <text x="94" y="274" class="serif ink" font-size="34">128</text>
+  <text x="94" y="301" class="sans muted" font-size="12">活动链区块总数 129</text>
+  <text x="381" y="231" class="mono muted" font-size="11">ACTIVE TIP</text>
+  <text x="381" y="270" class="mono ink" font-size="19">a83d…71c2</text>
+  <text x="381" y="301" class="sans muted" font-size="12">最近区块时间</text>
+  <text x="668" y="231" class="mono muted" font-size="11">TRANSACTIONS</text>
+  <text x="668" y="274" class="serif ink" font-size="34">246</text>
+  <text x="668" y="301" class="sans muted" font-size="12">活动链内交易数</text>
+  <text x="955" y="231" class="mono muted" font-size="11">UTXO CREDIT</text>
+  <text x="955" y="274" class="serif ink" font-size="34">3,600</text>
+  <text x="955" y="301" class="sans muted" font-size="12">当前 UTXO 中的额度</text>
+  <circle cx="1190" cy="210" r="15" class="badge"/><text x="1190" y="210" class="badge-text">2</text>
+
+  <rect x="66" y="346" width="1148" height="48" rx="3" fill="#233b36"/>
+  <text x="88" y="375" class="mono" font-size="11" fill="#d9f56b">CHAIN ID</text>
+  <text x="342" y="375" class="mono" font-size="12" fill="#cfdbd5">e0400a3a9af0d64b57c6a6dd5ac9897a…</text>
+  <circle cx="1190" cy="346" r="15" class="badge"/><text x="1190" y="346" class="badge-text">3</text>
+
+  <rect x="66" y="412" width="706" height="240" fill="#ffffff" stroke="#d8e0dd"/>
+  <line x1="66" y1="454" x2="772" y2="454" class="line"/>
+  <text x="88" y="439" class="serif ink" font-size="16">Recent block activity</text>
+  <text x="630" y="438" class="mono muted" font-size="10">LATEST 16 BLOCKS</text>
+  <line x1="94" y1="500" x2="746" y2="500" stroke="#e2e9e6"/>
+  <line x1="94" y1="548" x2="746" y2="548" stroke="#e2e9e6"/>
+  <line x1="94" y1="596" x2="746" y2="596" stroke="#e2e9e6"/>
+  <rect x="108" y="580" width="29" height="52" fill="#087b68"/>
+  <rect x="156" y="568" width="29" height="64" fill="#087b68"/>
+  <rect x="204" y="592" width="29" height="40" fill="#087b68"/>
+  <rect x="252" y="548" width="29" height="84" fill="#087b68"/>
+  <rect x="300" y="580" width="29" height="52" fill="#087b68"/>
+  <rect x="348" y="560" width="29" height="72" fill="#087b68"/>
+  <rect x="396" y="588" width="29" height="44" fill="#087b68"/>
+  <rect x="444" y="570" width="29" height="62" fill="#087b68"/>
+  <rect x="492" y="592" width="29" height="40" fill="#087b68"/>
+  <rect x="540" y="556" width="29" height="76" fill="#087b68"/>
+  <rect x="588" y="578" width="29" height="54" fill="#087b68"/>
+  <rect x="636" y="540" width="29" height="92" fill="#087b68"/>
+  <rect x="684" y="572" width="29" height="60" fill="#d96851"/>
+  <text x="94" y="645" class="mono muted" font-size="10">OLDER</text>
+  <text x="706" y="645" class="mono muted" font-size="10">NEWER</text>
+  <circle cx="748" cy="412" r="15" class="badge"/><text x="748" y="412" class="badge-text">4</text>
+
+  <rect x="790" y="412" width="424" height="240" fill="#ffffff" stroke="#d8e0dd"/>
+  <line x1="790" y1="454" x2="1214" y2="454" class="line"/>
+  <text x="812" y="439" class="serif ink" font-size="16">Credit ledger</text>
+  <text x="1060" y="438" class="mono muted" font-size="10">LIFETIME TOTALS</text>
+  <text x="812" y="489" class="sans muted" font-size="13">Issued</text><text x="1178" y="489" class="mono" font-size="13" fill="#087b68" text-anchor="end">4,000</text>
+  <line x1="812" y1="504" x2="1192" y2="504" stroke="#e8edeb"/>
+  <text x="812" y="532" class="sans muted" font-size="13">Burned</text><text x="1178" y="532" class="mono" font-size="13" fill="#d96851" text-anchor="end">200</text>
+  <line x1="812" y1="547" x2="1192" y2="547" stroke="#e8edeb"/>
+  <text x="812" y="575" class="sans muted" font-size="13">Expired</text><text x="1178" y="575" class="mono ink" font-size="13" text-anchor="end">100</text>
+  <line x1="812" y1="590" x2="1192" y2="590" stroke="#e8edeb"/>
+  <text x="812" y="618" class="sans muted" font-size="13">Current target (hex)</text><text x="1178" y="618" class="mono ink" font-size="12" text-anchor="end">1fff…ffff</text>
+  <circle cx="1190" cy="412" r="15" class="badge"/><text x="1190" y="412" class="badge-text">5</text>
+
+  <text x="66" y="696" class="serif ink" font-size="22">Recent blocks</text>
+  <text x="1000" y="694" class="mono muted" font-size="10">UPDATED · 09:49:13</text>
+  <rect x="66" y="713" width="1148" height="38" fill="#edf2ef"/>
+  <text x="88" y="737" class="mono muted" font-size="10">HEIGHT</text><text x="240" y="737" class="mono muted" font-size="10">BLOCK ID</text><text x="648" y="737" class="mono muted" font-size="10">TIMESTAMP</text><text x="950" y="737" class="mono muted" font-size="10">TRANSACTIONS</text>
+  <line x1="66" y1="751" x2="1214" y2="751" class="line"/>
+  <text x="88" y="780" class="mono" font-size="12" fill="#087b68">128</text><text x="240" y="780" class="mono muted" font-size="11">a83d1e…71c2</text><text x="648" y="780" class="sans ink" font-size="12">2026-10-02 09:49:00</text><text x="950" y="780" class="mono ink" font-size="12">2</text>
+  <circle cx="1190" cy="713" r="15" class="badge"/><text x="1190" y="713" class="badge-text">6</text>
+  <text x="66" y="810" class="mono muted" font-size="10">READ-ONLY NODE VIEW</text>
+  <text x="1000" y="810" class="mono muted" font-size="10">DATA SOURCE · /api/overview</text>
+  <text x="36" y="844" class="sans muted" font-size="12">页面布局示意图 · 数值为说明用样例，非实时链数据</text>
+</svg>

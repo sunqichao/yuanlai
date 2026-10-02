@@ -1,0 +1,16 @@
+[package]
+name = "yuanlai-p2p"
+description = "Peer-to-peer wire protocol for YuanLai nodes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+yuanlai-codec.workspace = true
+yuanlai-types.workspace = true
+
+[lints]
+workspace = true

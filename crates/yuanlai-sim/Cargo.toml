@@ -1,0 +1,20 @@
+[package]
+name = "yuanlai-sim"
+description = "Deterministic multi-node simulation harness for YuanLai"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+yuanlai-crypto.workspace = true
+yuanlai-types.workspace = true
+yuanlai-consensus.workspace = true
+yuanlai-storage.workspace = true
+yuanlai-mempool.workspace = true
+yuanlai-miner.workspace = true
+
+[lints]
+workspace = true

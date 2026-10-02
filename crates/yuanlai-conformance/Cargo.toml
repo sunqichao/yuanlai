@@ -1,0 +1,21 @@
+[package]
+name = "yuanlai-conformance"
+description = "Runs the YuanLai implementation against the official test vectors in spec/test-vectors"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dev-dependencies]
+hex.workspace = true
+serde_json.workspace = true
+yuanlai-codec.workspace = true
+yuanlai-consensus.workspace = true
+yuanlai-crypto.workspace = true
+yuanlai-types.workspace = true
+yuanlai-zk.workspace = true
+
+[lints]
+workspace = true

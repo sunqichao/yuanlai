@@ -1,0 +1,9 @@
+/target/
+/fuzz/target/
+/fuzz/corpus/
+/fuzz/artifacts/
+/web/node_modules/
+/web/dist/
+.DS_Store
+*.profraw
+lcov.info

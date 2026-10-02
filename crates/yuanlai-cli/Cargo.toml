@@ -1,0 +1,30 @@
+[package]
+name = "yuanlai-cli"
+description = "YuanLai command-line wallet and course registration tool"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "yuanlai"
+path = "src/main.rs"
+
+[dependencies]
+rand.workspace = true
+yuanlai-codec.workspace = true
+yuanlai-consensus.workspace = true
+yuanlai-crypto.workspace = true
+yuanlai-mempool.workspace = true
+yuanlai-storage.workspace = true
+yuanlai-types.workspace = true
+yuanlai-zk.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+yuanlai-miner.workspace = true
+
+[lints]
+workspace = true

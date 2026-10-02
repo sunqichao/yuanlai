@@ -1,0 +1,21 @@
+[package]
+name = "yuanlai-mempool"
+description = "Pending transaction pool for YuanLai nodes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+yuanlai-codec.workspace = true
+yuanlai-types.workspace = true
+yuanlai-consensus.workspace = true
+
+[dev-dependencies]
+yuanlai-crypto.workspace = true
+yuanlai-miner.workspace = true
+
+[lints]
+workspace = true

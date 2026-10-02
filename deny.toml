@@ -1,0 +1,36 @@
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+confidence-threshold = 0.93
+# Only licenses actually in use. Adding one requires a note in the dependency's ADR.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    # curve25519-dalek / ed25519-dalek, see docs/adr/0003-p1-credit-state.md
+    "BSD-3-Clause",
+    # unicode-ident via a compile-time proc macro only, see docs/adr/0003-p1-credit-state.md
+    "Unicode-3.0",
+]
+
+[licenses.private]
+ignore = false
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+deny = [
+    { name = "openssl", reason = "pure-Rust cryptography only" },
+    { name = "openssl-sys", reason = "pure-Rust cryptography only" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

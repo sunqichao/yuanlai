@@ -1,0 +1,130 @@
+{
+  "cases": [
+    {
+      "error": null,
+      "hex": "0201",
+      "type": "u16"
+    },
+    {
+      "error": null,
+      "hex": "ffffffffffffffff",
+      "type": "u64"
+    },
+    {
+      "error": "CODEC-DEC-06",
+      "hex": "00000000000000",
+      "type": "u64"
+    },
+    {
+      "error": "CODEC-DEC-01",
+      "hex": "000000000000000000",
+      "type": "u64"
+    },
+    {
+      "error": null,
+      "hex": "00",
+      "type": "bool"
+    },
+    {
+      "error": null,
+      "hex": "01",
+      "type": "bool"
+    },
+    {
+      "error": "CODEC-DEC-03",
+      "hex": "02",
+      "type": "bool"
+    },
+    {
+      "error": null,
+      "hex": "00",
+      "type": "option_u8"
+    },
+    {
+      "error": null,
+      "hex": "0107",
+      "type": "option_u8"
+    },
+    {
+      "error": "CODEC-DEC-03",
+      "hex": "0207",
+      "type": "option_u8"
+    },
+    {
+      "error": "CODEC-DEC-06",
+      "hex": "01",
+      "type": "option_u8"
+    },
+    {
+      "error": null,
+      "hex": "00000000",
+      "type": "varbytes_4"
+    },
+    {
+      "error": null,
+      "hex": "0400000061626364",
+      "type": "varbytes_4"
+    },
+    {
+      "error": "CODEC-DEC-02",
+      "hex": "050000006162636465",
+      "type": "varbytes_4"
+    },
+    {
+      "error": "CODEC-DEC-06",
+      "hex": "030000006162",
+      "type": "varbytes_4"
+    },
+    {
+      "error": null,
+      "hex": "06000000e78cbfe69da5",
+      "type": "text_8"
+    },
+    {
+      "error": "CODEC-DEC-05",
+      "hex": "02000000c328",
+      "type": "text_8"
+    },
+    {
+      "error": "CODEC-DEC-05",
+      "hex": "010000001f",
+      "type": "text_8"
+    },
+    {
+      "error": "CODEC-DEC-05",
+      "hex": "010000007f",
+      "type": "text_8"
+    },
+    {
+      "error": "CODEC-DEC-05",
+      "hex": "02000000c285",
+      "type": "text_8"
+    },
+    {
+      "error": null,
+      "hex": "02000000c2a0",
+      "type": "text_8"
+    },
+    {
+      "error": null,
+      "hex": "0200000001000302",
+      "type": "list_u16_3"
+    },
+    {
+      "error": "CODEC-DEC-02",
+      "hex": "04000000",
+      "type": "list_u16_3"
+    },
+    {
+      "error": "CODEC-DEC-02",
+      "hex": "ffffffff",
+      "type": "list_u16_3"
+    },
+    {
+      "error": "CODEC-DEC-04",
+      "hex": "ff",
+      "type": "tx"
+    }
+  ],
+  "description": "Strict decoding (spec/01 §1-§3). error is null for valid input, else the rule ID."
+}

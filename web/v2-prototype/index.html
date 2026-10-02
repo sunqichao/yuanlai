@@ -1,0 +1,1392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b35">
+  <title>原链 | 文件指纹登记原型</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17312d;
+      --muted: #62736e;
+      --line: #d5dfda;
+      --paper: #f0f4f1;
+      --white: #fffefa;
+      --forest: #173b35;
+      --green: #087b68;
+      --lime: #d9f56b;
+      --coral: #c64f3c;
+      --mono: "SFMono-Regular", Consolas, monospace;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: linear-gradient(rgba(23, 49, 45, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 49, 45, .035) 1px, transparent 1px);
+      background-size: 28px 28px;
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { color: #f3f7f3; background: var(--forest); border-bottom: 4px solid var(--lime); }
+    .topbar-inner, main, footer { width: min(1160px, calc(100% - 40px)); margin-inline: auto; }
+    .topbar-inner { min-height: 72px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .seal { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--forest); background: var(--lime); font: 700 13px var(--mono); }
+    .brand-name { font-weight: 700; }
+    .brand-name small { display: block; margin-top: 2px; color: #b7c9c2; font: 10px var(--mono); }
+    .local-flag { padding: 8px 10px; border: 1px solid #a6c0b5; color: #d9f56b; font: 10px var(--mono); text-transform: uppercase; }
+    main { padding: 38px 0 48px; }
+    .intro { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 26px; }
+    .eyebrow { margin: 0 0 9px; color: var(--green); font: 11px var(--mono); text-transform: uppercase; }
+    h1 { margin: 0; font: 400 38px/1.08 var(--serif); }
+    .intro-note { max-width: 420px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .prototype-notice { margin: 0 0 22px; padding: 12px 15px; border-left: 4px solid var(--coral); color: #693127; background: #fff2ed; font-size: 12px; line-height: 1.55; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr); gap: 20px; align-items: start; }
+    .form-panel, .preview-panel { min-width: 0; background: var(--white); border: 1px solid var(--line); }
+    .panel-head { padding: 16px 19px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    h2 { margin: 0; font: 400 21px var(--serif); }
+    .step-label { color: var(--muted); font: 10px var(--mono); }
+    .form-body { padding: 20px; }
+    .dropzone { min-height: 188px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px dashed #7e9d91; background: #f6f9f5; transition: background-color .15s, border-color .15s; }
+    .dropzone.dragover { background: #ecf6d7; border-color: var(--green); }
+    .file-icon { width: 42px; height: 42px; margin-bottom: 12px; display: grid; place-items: center; border: 1px solid #b9cbc2; border-radius: 50%; color: var(--green); font-size: 20px; }
+    .drop-title { margin: 0; font-size: 14px; font-weight: 650; }
+    .drop-subtitle { margin: 6px 0 15px; color: var(--muted); font-size: 12px; }
+    .button { min-height: 38px; padding: 9px 14px; border: 1px solid var(--forest); color: var(--white); background: var(--forest); font-size: 12px; font-weight: 650; }
+    .button:hover:not(:disabled) { color: var(--forest); background: var(--lime); }
+    .button:focus-visible, input:focus-visible { outline: 3px solid #77b5a0; outline-offset: 2px; }
+    .button.secondary { color: var(--forest); background: transparent; }
+    .button.secondary:hover:not(:disabled) { background: #e9f1e9; }
+    .button:disabled { cursor: not-allowed; opacity: .45; }
+    .file-meta { display: none; width: 100%; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); text-align: left; }
+    .file-meta.visible { display: block; }
+    .file-name { overflow-wrap: anywhere; font-size: 13px; font-weight: 650; }
+    .file-size { margin-top: 4px; color: var(--muted); font: 11px var(--mono); }
+    .field { margin-top: 19px; }
+    label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 650; }
+    .required { color: var(--coral); }
+    input[type="text"] { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid #b9c8c2; border-radius: 0; color: var(--ink); background: #fff; font-size: 13px; }
+    select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #b9c8c2; border-radius: 0; color: var(--ink); background: #fff; font-size: 13px; }
+    select { min-height: 42px; }
+    textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+    select:focus-visible, textarea:focus-visible { outline: 3px solid #77b5a0; outline-offset: 2px; }
+    .field-hint { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .claim-confirm { margin-top: 14px; display: flex; align-items: start; gap: 9px; color: var(--ink); font-size: 11px; line-height: 1.5; }
+    .claim-confirm input { margin: 2px 0 0; accent-color: var(--green); }
+    .form-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+    .error { display: none; margin-top: 15px; padding: 10px 12px; color: #842f23; background: #fff0eb; border-left: 3px solid var(--coral); font-size: 12px; }
+    .error.visible { display: block; }
+    .progress { display: none; margin-top: 15px; color: var(--green); font: 11px var(--mono); }
+    .progress.visible { display: block; }
+    .preview-panel { position: sticky; top: 18px; }
+    .preview-body { padding: 20px; }
+    .certificate { position: relative; aspect-ratio: 7 / 9; min-height: 0; padding: 8% 9% 6%; display: flex; flex-direction: column; overflow: hidden; background: #fbfaf3 url("certificate-paper.svg") center / 100% 100% no-repeat; }
+    .cert-topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 5%; border-bottom: 1px solid rgba(23, 59, 53, .22); }
+    .cert-brand { display: flex; align-items: center; gap: 8px; color: var(--forest); }
+    .cert-monogram { width: 30px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #b18b4a; border-radius: 50%; color: #805f29; font: 700 9px var(--mono); }
+    .cert-brand strong { display: block; font: 600 12px var(--serif); }
+    .cert-brand small { display: block; margin-top: 2px; color: var(--muted); font: 7px var(--mono); }
+    .cert-reference { text-align: right; color: var(--muted); font: 6px/1.6 var(--mono); }
+    .cert-reference strong { display: block; color: var(--forest); font-size: 8px; }
+    .cert-heading { position: relative; padding-right: 34%; margin-top: 7%; }
+    .cert-kicker { margin: 0 0 6px; color: #8f6c34; font: 7px var(--mono); }
+    .cert-title { margin: 0; color: var(--ink); font: 400 22px/1.18 var(--serif); overflow-wrap: anywhere; }
+    .cert-owner { margin: 8px 0 0; color: var(--muted); font-size: 9px; overflow-wrap: anywhere; }
+    .cert-declaration { margin: 5px 0 0; color: var(--ink); font-size: 8px; line-height: 1.45; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    .cert-rule { height: 1px; margin: 5% 0 4%; background: linear-gradient(90deg, #b18b4a 0 16%, rgba(23, 59, 53, .22) 16% 100%); }
+    .cert-label { color: #6a766d; font: 7px var(--mono); }
+    .cert-fingerprint { margin-top: 5px; color: var(--forest); font: 8px/1.7 var(--mono); overflow-wrap: anywhere; }
+    .cert-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4%; }
+    .cert-meta-item { min-width: 0; }
+    .cert-meta-item .cert-label { display: block; margin-bottom: 3px; }
+    .cert-time { color: var(--ink); font-size: 8px; overflow-wrap: anywhere; }
+    .cert-id { color: var(--muted); font: 7px/1.5 var(--mono); overflow-wrap: anywhere; }
+    .cert-seal { position: absolute; top: 31%; right: 10%; width: 25%; aspect-ratio: 1; display: grid; place-content: center; text-align: center; border: 1px solid rgba(177, 139, 74, .75); border-radius: 50%; color: #89692f; transform: rotate(-9deg); }
+    .cert-seal::before { position: absolute; inset: 5px; border: 1px solid rgba(177, 139, 74, .5); border-radius: 50%; content: ""; }
+    .cert-seal strong { font: 700 16px var(--serif); }
+    .cert-seal small { margin-top: 2px; font: 6px var(--mono); }
+    .cert-footer { margin-top: auto; padding-top: 3%; border-top: 1px solid rgba(23, 59, 53, .22); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; }
+    .cert-disclaimer { max-width: none; color: var(--muted); font-size: 7px; line-height: 1.5; }
+    .cert-stamp { width: 78px; padding: 5px 4px; border: 1px solid #9b4939; color: #8b3f31; font: 700 6px/1.4 var(--mono); text-align: center; white-space: pre-line; }
+    .empty-preview { color: #86938e; }
+    .result-meta { display: none; margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .result-meta.visible { display: block; }
+    .result-label { color: var(--muted); font: 10px var(--mono); }
+    .record-id { margin-top: 6px; font: 10px/1.6 var(--mono); overflow-wrap: anywhere; }
+    .preview-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .local-records { margin-top: 24px; padding: 0 20px 20px; border: 1px solid #cbd9d1; border-top: 3px solid var(--green); background: #eaf1ec; }
+    .local-records .panel-head { padding: 14px 0 12px; border-bottom: 0; }
+    .topbar-nav { display: flex; align-items: center; gap: 18px; margin-left: auto; }
+    .topbar-nav a { color: #f3f7f3; font-size: 12px; text-decoration-color: #9fb7ac; text-underline-offset: 5px; }
+    .topbar-nav a:hover { color: var(--lime); }
+    .explorer-intro { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .explorer-controls { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(145px, 190px) auto auto; gap: 9px; align-items: center; }
+    .explorer-controls input, .explorer-controls select { width: 100%; min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid #aebfb6; border-radius: 0; color: var(--ink); background: var(--white); font-size: 12px; }
+    .explorer-summary { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0 8px; color: var(--muted); font: 10px var(--mono); }
+    .explorer-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .explorer-entry { min-width: 0; border: 1px solid #cbd9d1; background: rgba(255, 254, 250, .82); }
+    .explorer-entry summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 12px; padding: 12px 14px; cursor: pointer; list-style-position: inside; }
+    .explorer-entry summary::marker { color: var(--green); }
+    .explorer-entry[open] summary { border-bottom: 1px solid var(--line); }
+    .explorer-title { min-width: 0; color: var(--ink); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .explorer-meta { grid-column: 1 / -1; color: var(--muted); font: 10px/1.55 var(--mono); overflow-wrap: anywhere; }
+    .local-status { align-self: start; padding: 4px 6px; border: 1px solid #9ab8a5; color: #285743; background: #edf6ed; font: 9px var(--mono); white-space: nowrap; }
+    .local-status.invalid { border-color: #d8a69b; color: #842f23; background: #fff0eb; }
+    .explorer-detail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; padding: 14px; }
+    .explorer-field { min-width: 0; }
+    .explorer-field.full-width { grid-column: 1 / -1; }
+    .explorer-field dt { margin-bottom: 4px; color: var(--muted); font: 9px var(--mono); }
+    .explorer-field dd { margin: 0; color: var(--ink); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .explorer-field code { color: var(--forest); font: 10px/1.55 var(--mono); overflow-wrap: anywhere; word-break: break-word; }
+    .explorer-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 3px; }
+    .explorer-empty { padding: 24px 12px; border: 1px dashed #aebfb6; color: var(--muted); text-align: center; font-size: 12px; }
+    .verify-dialog { width: min(620px, calc(100% - 28px)); max-height: calc(100% - 28px); padding: 0; border: 1px solid #9eafa6; color: var(--ink); background: var(--white); }
+    .verify-dialog::backdrop { background: rgba(16, 37, 33, .56); backdrop-filter: blur(2px); }
+    .verify-dialog-header { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+    .verify-dialog-header h2 { margin: 0; font: 400 22px var(--serif); }
+    .verify-dialog-kicker { margin: 0 0 5px; color: var(--green); font: 9px var(--mono); }
+    .verify-dialog-body { padding: 18px 20px 20px; overflow-y: auto; }
+    .verify-summary { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 18px; }
+    .verify-summary div { min-width: 0; }
+    .verify-summary .full-width { grid-column: 1 / -1; }
+    .verify-summary dt { margin-bottom: 4px; color: var(--muted); font: 9px var(--mono); }
+    .verify-summary dd { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+    .verify-summary .preserve-lines { white-space: pre-wrap; }
+    .verify-summary code { color: var(--forest); font: 10px/1.5 var(--mono); overflow-wrap: anywhere; }
+    .verify-file-field { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .verify-file-field input { max-width: 100%; font-size: 12px; }
+    .verify-file-name { margin: 7px 0 0; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+    .verification-result { margin-top: 16px; padding: 12px; border-left: 3px solid var(--line); background: #f3f6f2; }
+    .verification-result[hidden] { display: none; }
+    .verification-result[data-state="success"] { border-color: var(--green); background: #edf6f0; }
+    .verification-result[data-state="failure"] { border-color: var(--coral); background: #fff2ed; }
+    .verification-result > p { margin: 0; font-size: 13px; font-weight: 650; }
+    .verification-checks { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .verification-checks div { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
+    .verification-checks strong { color: var(--forest); }
+    .verify-dialog-actions { margin-top: 18px; display: flex; justify-content: end; gap: 9px; }
+    .key-management { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .key-management h3 { margin: 0; font: 400 17px var(--serif); }
+    .key-management-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .key-management input[type="password"] { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid #b9c8c2; border-radius: 0; color: var(--ink); background: #fff; font-size: 13px; }
+    .fine-print { margin: 14px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    footer { padding: 14px 0 24px; border-top: 1px solid #cbd6d1; display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font: 10px var(--mono); }
+    @media (max-width: 820px) {
+      .workspace { grid-template-columns: 1fr; }
+      .preview-panel { position: static; }
+      .intro { display: block; }
+      .intro-note { margin-top: 12px; }
+    }
+    @media (max-width: 520px) {
+      .topbar-inner, main, footer { width: calc(100% - 28px); }
+      .topbar-inner { min-height: 64px; }
+      .topbar-nav { gap: 10px; }
+      .topbar-nav a { font-size: 11px; }
+      .local-flag { max-width: 126px; text-align: center; line-height: 1.35; }
+      main { padding-top: 27px; }
+      h1 { font-size: 32px; }
+      .form-body, .preview-body { padding: 14px; }
+      .local-records { padding: 0 14px 14px; }
+      .explorer-controls { grid-template-columns: minmax(0, 1fr) auto; }
+      .explorer-controls input { grid-column: 1 / -1; }
+      .explorer-controls select { grid-column: 1 / -1; }
+      .explorer-detail { grid-template-columns: minmax(0, 1fr); }
+      .explorer-field.full-width, .explorer-actions { grid-column: auto; }
+      .dropzone { padding: 18px 12px; }
+      .certificate { padding: 8% 7% 6%; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="seal" aria-hidden="true">YL</span><span class="brand-name">猿来 · 原链<small>FILE FINGERPRINT REGISTRY</small></span></div>
+      <nav class="topbar-nav" aria-label="主要导航"><a href="#record-form">登记</a><a href="#local-explorer">本机浏览器</a></nav>
+      <span class="local-flag">LOCAL PROTOTYPE</span>
+    </div>
+  </header>
+  <dialog id="verify-dialog" class="verify-dialog" aria-labelledby="verify-dialog-title">
+    <div class="verify-dialog-header">
+      <div><p class="verify-dialog-kicker">LOCAL SIGNATURE VERIFICATION</p><h2 id="verify-dialog-title">核验记录与文件</h2></div>
+      <button id="verify-close" class="button secondary" type="button">关闭</button>
+    </div>
+    <div class="verify-dialog-body">
+      <dl class="verify-summary">
+        <div><dt>作品名称</dt><dd id="verify-record-title"></dd></div>
+        <div><dt>声明人</dt><dd id="verify-record-claimant"></dd></div>
+        <div><dt>声明身份</dt><dd id="verify-record-role"></dd></div>
+        <div class="full-width"><dt>签署声明</dt><dd id="verify-record-declaration" class="preserve-lines"></dd></div>
+        <div class="full-width"><dt>记录 SHA-256</dt><dd><code id="verify-record-hash"></code></dd></div>
+        <div><dt>记录文件大小</dt><dd id="verify-record-size"></dd></div>
+        <div><dt>记录编号</dt><dd><code id="verify-record-id"></code></dd></div>
+      </dl>
+      <div class="verify-file-field">
+        <label for="verify-file-input">选择要核验的原始文件</label>
+        <input id="verify-file-input" type="file">
+        <p id="verify-file-name" class="verify-file-name">尚未选择文件</p>
+      </div>
+      <section id="verification-result" class="verification-result" data-state="" role="status" aria-live="polite" hidden>
+        <p id="verify-result-summary"></p>
+        <div class="verification-checks">
+          <div><span>记录签名</span><strong id="verify-signature-result">待核验</strong></div>
+          <div><span>文件指纹</span><strong id="verify-fingerprint-result">待核验</strong></div>
+        </div>
+      </section>
+      <div class="verify-dialog-actions">
+        <button id="verify-run" class="button" type="button" disabled>开始核验</button>
+      </div>
+    </div>
+  </dialog>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">登记流程验证 · V2</p><h1>建立作品指纹记录</h1></div>
+      <p class="intro-note">选择原始文件，在本机计算 SHA-256；用本机密钥签名并保存声明，之后可离线核验文件或导入的签名记录。</p>
+    </section>
+    <p class="prototype-notice"><strong>本机模式：</strong>签名记录保存在这台电脑的共享文件中；使用同一个本机地址打开的不同浏览器都能查看。签名密钥默认由各浏览器分别保管，可通过口令加密备份迁移。文件只在本机计算，不会上传；尚未接入联网同步。设备时间不证明最早创作人，记录也不证明法律著作权。文件上限 50 MiB，最终上限待性能测试确定。</p>
+
+    <div id="record-form" class="workspace">
+      <section class="form-panel" aria-labelledby="form-title">
+        <div class="panel-head"><h2 id="form-title">登记信息</h2><span class="step-label">01 / FILE &amp; CLAIM</span></div>
+        <div class="form-body">
+          <div id="dropzone" class="dropzone" role="region" aria-label="选择或拖入作品文件">
+            <span class="file-icon" aria-hidden="true">＋</span>
+            <p class="drop-title">选择一个原始文件</p>
+            <p class="drop-subtitle">ZIP、PDF、Word、Markdown 或其他格式；按文件原始字节计算</p>
+            <button id="choose-file" class="button secondary" type="button">选择文件</button>
+            <input id="file-input" type="file" hidden>
+            <div id="file-meta" class="file-meta" aria-live="polite">
+              <div id="file-name" class="file-name"></div>
+              <div id="file-size" class="file-size"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="work-title">作品名称 <span class="required">*</span></label>
+            <input id="work-title" type="text" maxlength="100" autocomplete="off" placeholder="例如：春季课程讲义">
+            <p class="field-hint">这是你提交的声明文字，系统不会核验其真实性；正式版默认保存在本机，只有主动同步时才公开。</p>
+          </div>
+          <div class="field">
+            <label for="claimant">著作权人 / 声明人 <span class="required">*</span></label>
+            <input id="claimant" type="text" maxlength="100" autocomplete="name" placeholder="填写用于证书展示的名称">
+            <p class="field-hint">声明由此浏览器的本机密钥签名；记录会在这台电脑的浏览器之间共享，但不会上传互联网。签名只证明对应密钥签署了这段文字。</p>
+          </div>
+          <div class="field">
+            <label for="claimant-role">声明身份 <span class="required">*</span></label>
+            <select id="claimant-role">
+              <option value="creator">创作者之一</option>
+              <option value="rights-holder">自述权利人</option>
+              <option value="authorized-agent">自述受托/授权代理人</option>
+              <option value="other">其他身份</option>
+            </select>
+            <p class="field-hint">这是你的自我申报，不代表应用核验身份、权属或授权文件。</p>
+          </div>
+          <div class="field">
+            <label for="declaration-text">作品声明 <span class="required">*</span></label>
+            <textarea id="declaration-text" maxlength="1000" placeholder="写明你与作品的关系，以及希望随指纹记录保存的声明内容。此文本会被签名并随记录导出。"></textarea>
+            <p class="field-hint">避免写入不必要的个人或保密信息。原型不提供法律意见，也不会替你向平台授予作品使用权。</p>
+          </div>
+          <label class="claim-confirm" for="claim-confirmed">
+            <input id="claim-confirmed" type="checkbox">
+            <span>我确认以上内容是我本人提交的声明，并理解签名不证明真实身份、权利归属或授权效力。</span>
+          </label>
+          <div id="progress" class="progress" role="status"></div>
+          <div id="error" class="error" role="alert"></div>
+          <div class="form-actions">
+            <button id="generate" class="button" type="button" disabled>签名并保存本机记录</button>
+            <button id="clear" class="button secondary" type="button">清空</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview-panel" aria-labelledby="preview-title">
+        <div class="panel-head"><h2 id="preview-title">凭证预览</h2><span class="step-label">02 / PREVIEW</span></div>
+        <div class="preview-body">
+          <article id="certificate" class="certificate" aria-label="本地样例凭证">
+            <div class="cert-topline">
+              <div class="cert-brand"><span class="cert-monogram">YL</span><span><strong>猿来 · 原链</strong><small>LOCAL FILE REGISTRY</small></span></div>
+              <div class="cert-reference">RECORD SERIES<strong>LOCAL · V2</strong></div>
+            </div>
+            <div class="cert-heading">
+              <p class="cert-kicker">CRYPTOGRAPHIC FILE RECORD</p>
+              <h3 id="preview-work" class="cert-title empty-preview">作品名称将在此显示</h3>
+              <p id="preview-owner" class="cert-owner">声明人将在此显示</p>
+              <p id="preview-declaration" class="cert-declaration"></p>
+            </div>
+            <div class="cert-seal" aria-hidden="true"><strong>YL</strong><small>LOCAL RECORD</small></div>
+            <div class="cert-rule"></div>
+            <div class="cert-label">SHA-256 · FILE FINGERPRINT</div>
+            <div id="preview-hash" class="cert-fingerprint empty-preview">选择文件后生成</div>
+            <div class="cert-meta">
+              <div class="cert-meta-item"><span class="cert-label">DEVICE TIME</span><div id="preview-time" class="cert-time">待生成 · 非可信时间戳</div></div>
+              <div class="cert-meta-item"><span class="cert-label">LOCAL RECORD ID</span><div id="preview-id" class="cert-id">尚未生成</div></div>
+            </div>
+            <div class="cert-footer">
+              <div class="cert-disclaimer">签名用于核验密钥与声明内容；不代表身份、著作权或官方认证。</div>
+              <div id="certificate-status" class="cert-stamp">本机预览<br>尚未签名</div>
+            </div>
+          </article>
+          <div id="result-meta" class="result-meta">
+            <div class="result-label">LOCAL RECORD ID</div>
+            <div id="record-id" class="record-id"></div>
+          </div>
+          <div class="preview-actions">
+            <button id="download" class="button" type="button" disabled>下载 PNG</button>
+            <button id="download-record" class="button secondary" type="button" disabled>导出签名记录 JSON</button>
+          </div>
+          <p class="fine-print">指纹匹配只说明文件字节一致；本机时间可被修改，记录也不能单独证明最早创作人、真实身份或法律上的著作权归属。</p>
+        </div>
+      </section>
+    </div>
+    <section id="local-explorer" class="local-records" aria-labelledby="local-records-title">
+      <div class="panel-head"><h2 id="local-records-title">本机浏览器</h2><span id="local-record-count" class="step-label" aria-live="polite">0 条</span></div>
+      <p class="explorer-intro">搜索这台电脑共享记录服务中的签名记录。结果仅代表本机保存状态，当前版本尚未接入区块链或联网同步。</p>
+      <p id="local-key-note" class="fine-print">本机共享记录服务连接中；各浏览器的签名密钥分别保存。</p>
+      <div class="explorer-controls">
+        <input id="record-search" type="search" autocomplete="off" placeholder="搜索作品、声明内容、记录编号或 SHA-256" aria-label="搜索本机记录">
+        <select id="record-version-filter" aria-label="按记录版本筛选">
+          <option value="all">全部版本</option>
+          <option value="yuanlai-local-record-v1">V1 记录</option>
+          <option value="yuanlai-local-record-v2">V2 记录</option>
+        </select>
+        <button id="clear-record-search" class="button secondary" type="button" disabled>清除</button>
+        <button id="refresh-records" class="button secondary" type="button">刷新</button>
+      </div>
+      <div class="explorer-summary"><span id="record-result-count" aria-live="polite">正在读取本机记录…</span><span>仅本机保存 · 未同步</span></div>
+      <input id="import-record-input" type="file" accept="application/json,.json" hidden>
+      <button id="import-record" class="button secondary" type="button">导入签名记录 JSON</button>
+      <ul id="local-record-list" class="explorer-list" aria-label="本机签名记录"></ul>
+      <section class="key-management" aria-labelledby="key-management-title">
+        <h3 id="key-management-title">签名密钥备份</h3>
+        <p class="fine-print">备份文件用口令加密。请使用至少 12 个字符的强口令并另行保存；忘记口令无法恢复。浏览器中的密钥供当前原链页面签名和备份使用，不防同源页面代码遭篡改。旧版浏览器密钥不可导出，轮换后旧记录仍可验证，但新记录会使用新公钥。</p>
+        <div class="field">
+          <label for="key-backup-password">备份口令</label>
+          <input id="key-backup-password" type="password" autocomplete="new-password" minlength="12">
+        </div>
+        <div class="field">
+          <label for="key-backup-confirm">再次输入备份口令</label>
+          <input id="key-backup-confirm" type="password" autocomplete="new-password" minlength="12">
+        </div>
+        <div class="key-management-actions">
+          <button id="export-key-backup" class="button secondary" type="button">导出加密密钥备份</button>
+          <button id="rotate-signing-key" class="button secondary" type="button">生成并切换新密钥</button>
+          <button id="restore-key-backup" class="button secondary" type="button">恢复密钥备份</button>
+        </div>
+        <input id="key-backup-file" type="file" accept="application/json,.json" hidden>
+      </section>
+    </section>
+  </main>
+  <footer><span>原链 V2 · 本机离线原型</span><span>文件不上传 · 本机签名 · 仅本机共享</span></footer>
+  <script>
+    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    const elements = Object.fromEntries([
+      "dropzone", "choose-file", "file-input", "file-meta", "file-name", "file-size",
+      "work-title", "claimant", "claimant-role", "declaration-text", "claim-confirmed", "progress", "error", "generate", "clear", "preview-work",
+      "preview-owner", "preview-declaration", "preview-hash", "preview-time", "preview-id", "result-meta", "record-id",
+      "download", "download-record", "certificate-status", "local-record-count", "local-key-note", "local-record-list",
+      "record-search", "record-version-filter", "clear-record-search", "refresh-records", "record-result-count",
+      "import-record", "import-record-input", "key-backup-password", "key-backup-confirm",
+      "export-key-backup", "rotate-signing-key", "restore-key-backup", "key-backup-file",
+      "verify-dialog", "verify-close", "verify-record-title", "verify-record-claimant", "verify-record-role", "verify-record-declaration", "verify-record-hash",
+      "verify-record-size", "verify-record-id", "verify-file-input", "verify-file-name", "verify-run",
+      "verification-result", "verify-result-summary", "verify-signature-result", "verify-fingerprint-result",
+    ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
+    let selectedFile = null;
+    let fingerprint = null;
+    let localRecord = null;
+    let fileSelectionVersion = 0;
+    let sharedStorageError = "";
+    let loadedLocalRecords = [];
+    let activeVerificationRecord = null;
+
+    const LOCAL_DB_NAME = "yuanlai-local-records-v1";
+    const LOCAL_DB_VERSION = 2;
+    const SIGNING_KEY_ID = "local-ed25519-v1";
+    const ACTIVE_SIGNING_KEY_ID = "active-signing-key";
+    const KEY_BACKUP_FORMAT = "yuanlai-signing-key-backup-v1";
+    const KEY_BACKUP_ITERATIONS = 600_000;
+    const KEY_BACKUP_DOMAIN = "YuanLai/signing-key-backup/v1\0";
+    const RECORD_DOMAIN = "YuanLai/local-record/v1\0";
+    const RECORD_ID_DOMAIN = "YuanLai/local-record-id/v1\0";
+    const textEncoder = new TextEncoder();
+    const recordVerificationCache = new Map();
+
+    function openLocalDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(LOCAL_DB_NAME, LOCAL_DB_VERSION);
+        request.onupgradeneeded = () => {
+          const database = request.result;
+          if (!database.objectStoreNames.contains("records")) database.createObjectStore("records", { keyPath: "recordId" });
+          if (!database.objectStoreNames.contains("keys")) database.createObjectStore("keys", { keyPath: "id" });
+          if (!database.objectStoreNames.contains("settings")) database.createObjectStore("settings", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("无法打开本机记录数据库。"));
+        request.onblocked = () => reject(new Error("本机记录数据库正在被另一个页面升级，请关闭其他原链页面后重试。"));
+      });
+    }
+
+    async function databaseRequest(storeName, mode, createRequest) {
+      const database = await openLocalDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction(storeName, mode);
+        const request = createRequest(transaction.objectStore(storeName));
+        let result;
+        request.onsuccess = () => { result = request.result; };
+        request.onerror = () => reject(request.error || new Error("本机数据库请求失败。"));
+        transaction.oncomplete = () => { database.close(); resolve(result); };
+        transaction.onabort = () => { database.close(); reject(transaction.error || new Error("本机数据库写入失败。")); };
+        transaction.onerror = () => { database.close(); reject(transaction.error || new Error("本机数据库事务失败。")); };
+      });
+    }
+
+    async function getSigningKey() {
+      const active = await databaseRequest("settings", "readonly", (store) => store.get(ACTIVE_SIGNING_KEY_ID));
+      if (active) {
+        const saved = await databaseRequest("keys", "readonly", (store) => store.get(active.keyId));
+        if (saved) return saved;
+        throw new Error("当前签名密钥索引损坏；为避免意外更换身份，请先恢复密钥备份。");
+      }
+      const legacy = await databaseRequest("keys", "readonly", (store) => store.get(SIGNING_KEY_ID));
+      if (legacy) return legacy;
+      return createAndActivateSigningKey();
+    }
+
+    async function storeAndActivateSigningKey(keyRecord) {
+      const database = await openLocalDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction(["keys", "settings"], "readwrite");
+        transaction.objectStore("keys").put(keyRecord);
+        transaction.objectStore("settings").put({ id: ACTIVE_SIGNING_KEY_ID, keyId: keyRecord.id });
+        transaction.oncomplete = () => { database.close(); resolve(); };
+        transaction.onabort = () => { database.close(); reject(transaction.error || new Error("签名密钥保存失败。")); };
+        transaction.onerror = () => { database.close(); reject(transaction.error || new Error("签名密钥事务失败。")); };
+      });
+    }
+
+    async function createAndActivateSigningKey() {
+      const pair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
+      const publicKey = toHex(new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey)));
+      const keyRecord = { id: `${SIGNING_KEY_ID}:${publicKey}`, privateKey: pair.privateKey, publicKey };
+      await storeAndActivateSigningKey(keyRecord);
+      return keyRecord;
+    }
+
+    function base64FromBytes(bytes) {
+      let binary = "";
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      return btoa(binary);
+    }
+
+    function bytesFromBase64(value, expectedLength) {
+      if (typeof value !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(value)) {
+        throw new Error("密钥备份包含无效的 Base64 数据。");
+      }
+      const bytes = Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
+      if (expectedLength !== undefined && bytes.length !== expectedLength) throw new Error("密钥备份字段长度无效。");
+      return bytes;
+    }
+
+    async function deriveBackupKey(password, salt, usage) {
+      const material = await crypto.subtle.importKey("raw", textEncoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt, iterations: KEY_BACKUP_ITERATIONS, hash: "SHA-256" },
+        material,
+        { name: "AES-GCM", length: 256 },
+        false,
+        [usage],
+      );
+    }
+
+    function validateKeyBackup(value) {
+      const fields = ["format", "algorithm", "kdf", "iterations", "signerPublicKey", "salt", "iv", "encryptedPrivateKey"];
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("密钥备份 JSON 顶层必须是对象。");
+      const actualFields = Object.keys(value).sort();
+      const expectedFields = [...fields].sort();
+      if (actualFields.length !== expectedFields.length || actualFields.some((field, index) => field !== expectedFields[index])) {
+        throw new Error("密钥备份字段不符合支持的格式。");
+      }
+      if (value.format !== KEY_BACKUP_FORMAT || value.algorithm !== "Ed25519" || value.kdf !== "PBKDF2-SHA-256/AES-256-GCM" || value.iterations !== KEY_BACKUP_ITERATIONS) {
+        throw new Error("不支持此密钥备份版本或加密参数。");
+      }
+      if (typeof value.signerPublicKey !== "string" || !/^[0-9a-f]{64}$/u.test(value.signerPublicKey)) throw new Error("密钥备份公钥格式无效。");
+      bytesFromBase64(value.salt, 16);
+      bytesFromBase64(value.iv, 12);
+      const ciphertext = bytesFromBase64(value.encryptedPrivateKey);
+      if (ciphertext.length < 32 || ciphertext.length > 4096) throw new Error("密钥备份私钥数据长度无效。");
+      return value;
+    }
+
+    async function exportSigningKeyBackup() {
+      const password = elements.key_backup_password.value;
+      if (password.length < 12) throw new Error("备份口令至少需要 12 个字符。");
+      if (password !== elements.key_backup_confirm.value) throw new Error("两次输入的备份口令不一致。");
+      const signingKey = await getSigningKey();
+      if (!signingKey.privateKey.extractable) throw new Error("当前是旧版不可导出密钥。请先生成并切换新密钥；旧记录仍可独立验证。");
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encryptionKey = await deriveBackupKey(password, salt, "encrypt");
+      const additionalData = textEncoder.encode(`${KEY_BACKUP_DOMAIN}${signingKey.publicKey}`);
+      const privateKey = await crypto.subtle.exportKey("pkcs8", signingKey.privateKey);
+      const encryptedPrivateKey = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv, additionalData },
+        encryptionKey,
+        privateKey,
+      );
+      const backup = {
+        format: KEY_BACKUP_FORMAT,
+        algorithm: "Ed25519",
+        kdf: "PBKDF2-SHA-256/AES-256-GCM",
+        iterations: KEY_BACKUP_ITERATIONS,
+        signerPublicKey: signingKey.publicKey,
+        salt: base64FromBytes(salt),
+        iv: base64FromBytes(iv),
+        encryptedPrivateKey: base64FromBytes(new Uint8Array(encryptedPrivateKey)),
+      };
+      downloadJSON(backup, `yuanlai-key-backup-${signingKey.publicKey.slice(0, 12)}.json`);
+      elements.key_backup_password.value = "";
+      elements.key_backup_confirm.value = "";
+    }
+
+    async function restoreSigningKeyBackup(file) {
+      if (!file) return;
+      if (file.size > 64 * 1024) throw new Error("密钥备份文件不得超过 64 KiB。");
+      const password = elements.key_backup_password.value;
+      if (!password) throw new Error("请输入备份口令。");
+      let backup;
+      try {
+        backup = validateKeyBackup(JSON.parse(await file.text()));
+      } catch (error) {
+        if (error instanceof SyntaxError) throw new Error("无法解析密钥备份 JSON。");
+        throw error;
+      }
+      const decryptionKey = await deriveBackupKey(password, bytesFromBase64(backup.salt, 16), "decrypt");
+      let privateKeyBytes;
+      try {
+        privateKeyBytes = await crypto.subtle.decrypt(
+          {
+            name: "AES-GCM",
+            iv: bytesFromBase64(backup.iv, 12),
+            additionalData: textEncoder.encode(`${KEY_BACKUP_DOMAIN}${backup.signerPublicKey}`),
+          },
+          decryptionKey,
+          bytesFromBase64(backup.encryptedPrivateKey),
+        );
+      } catch {
+        throw new Error("口令错误，或密钥备份已损坏/被篡改。");
+      }
+      const privateKey = await crypto.subtle.importKey("pkcs8", privateKeyBytes, { name: "Ed25519" }, true, ["sign"]);
+      const publicKeyBytes = Uint8Array.from(backup.signerPublicKey.match(/.{2}/gu) || [], (pair) => Number.parseInt(pair, 16));
+      const publicKey = await crypto.subtle.importKey("raw", publicKeyBytes, { name: "Ed25519" }, false, ["verify"]);
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const signature = await crypto.subtle.sign("Ed25519", privateKey, challenge);
+      if (!await crypto.subtle.verify("Ed25519", publicKey, signature, challenge)) throw new Error("备份私钥与公钥不匹配。");
+      const keyRecord = { id: `${SIGNING_KEY_ID}:${backup.signerPublicKey}`, privateKey, publicKey: backup.signerPublicKey };
+      await storeAndActivateSigningKey(keyRecord);
+      elements.key_backup_password.value = "";
+      elements.key_backup_confirm.value = "";
+      elements.progress.textContent = `密钥已恢复并设为当前签名密钥：${backup.signerPublicKey.slice(0, 16)}…`;
+      elements.progress.classList.add("visible");
+      setError("");
+    }
+
+    function downloadJSON(value, filename) {
+      const blob = new Blob([`${JSON.stringify(value, null, 2)}\n`], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }
+
+    function signedFields(record) {
+      const fields = {
+        protocolVersion: record.protocolVersion,
+        hashAlgorithm: record.hashAlgorithm,
+        fingerprint: record.fingerprint,
+        fileSize: record.fileSize,
+        workTitle: record.workTitle,
+        claimant: record.claimant,
+      };
+      if (record.protocolVersion === "yuanlai-local-record-v2") {
+        fields.claimantRole = record.claimantRole;
+        fields.declarationText = record.declarationText;
+      }
+      fields.createdAt = record.createdAt;
+      fields.nonce = record.nonce;
+      fields.signerPublicKey = record.signerPublicKey;
+      return fields;
+    }
+
+    function signingBytes(record) {
+      return textEncoder.encode(RECORD_DOMAIN + JSON.stringify(signedFields(record)));
+    }
+
+    async function calculateRecordId(record) {
+      const identity = textEncoder.encode(`${RECORD_ID_DOMAIN}${JSON.stringify(signedFields(record))}\0${record.signature}`);
+      return toHex(new Uint8Array(await crypto.subtle.digest("SHA-256", identity)));
+    }
+
+    async function verifyRecordSignature(record) {
+      try {
+        const publicKeyBytes = Uint8Array.from(record.signerPublicKey.match(/.{2}/gu) || [], (pair) => Number.parseInt(pair, 16));
+        const publicKey = await crypto.subtle.importKey("raw", publicKeyBytes, { name: "Ed25519" }, false, ["verify"]);
+        const signatureBytes = Uint8Array.from(record.signature.match(/.{2}/gu) || [], (pair) => Number.parseInt(pair, 16));
+        const signatureValid = await crypto.subtle.verify("Ed25519", publicKey, signatureBytes, signingBytes(record));
+        return signatureValid && await calculateRecordId(record) === record.recordId;
+      } catch {
+        return false;
+      }
+    }
+
+    async function hasValidRecordSignature(record) {
+      const serialized = JSON.stringify(record);
+      const cached = recordVerificationCache.get(record.recordId);
+      if (cached?.serialized === serialized) return cached.valid;
+      const valid = await verifyRecordSignature(record);
+      recordVerificationCache.set(record.recordId, { serialized, valid });
+      return valid;
+    }
+
+    async function validateImportedRecord(value) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("JSON 顶层必须是记录对象。");
+      const versionFields = {
+        "yuanlai-local-record-v1": ["protocolVersion", "hashAlgorithm", "fingerprint", "fileSize", "workTitle", "claimant", "createdAt", "nonce", "signerPublicKey", "signature", "recordId"],
+        "yuanlai-local-record-v2": ["protocolVersion", "hashAlgorithm", "fingerprint", "fileSize", "workTitle", "claimant", "claimantRole", "declarationText", "createdAt", "nonce", "signerPublicKey", "signature", "recordId"],
+      };
+      const fields = versionFields[value.protocolVersion];
+      if (!fields) throw new Error("不支持此记录协议或哈希算法。");
+      const actualFields = Object.keys(value).sort();
+      if (actualFields.length !== fields.length || actualFields.some((field, index) => field !== [...fields].sort()[index])) {
+        throw new Error("记录字段不符合本机记录格式。");
+      }
+      if (value.hashAlgorithm !== "SHA-256") throw new Error("不支持此记录协议或哈希算法。");
+      if (!/^[0-9a-f]{64}$/u.test(value.fingerprint) || !/^[0-9a-f]{64}$/u.test(value.signerPublicKey) || !/^[0-9a-f]{128}$/u.test(value.signature) || !/^[0-9a-f]{64}$/u.test(value.recordId) || !/^[0-9a-f]{32}$/u.test(value.nonce)) throw new Error("记录包含格式无效的十六进制字段。");
+      if (!Number.isSafeInteger(value.fileSize) || value.fileSize < 0) throw new Error("记录中的文件大小无效。");
+      if (typeof value.workTitle !== "string" || !value.workTitle.trim() || value.workTitle.length > 100 || typeof value.claimant !== "string" || !value.claimant.trim() || value.claimant.length > 100) throw new Error("作品名称或声明人字段无效。");
+      if (value.protocolVersion === "yuanlai-local-record-v2") {
+        if (!["creator", "rights-holder", "authorized-agent", "other"].includes(value.claimantRole)) throw new Error("声明身份字段无效。");
+        if (typeof value.declarationText !== "string" || !value.declarationText.trim() || value.declarationText.length > 1000) throw new Error("作品声明字段无效。");
+      }
+      if (typeof value.createdAt !== "string" || !Number.isFinite(Date.parse(value.createdAt))) throw new Error("记录时间字段无效。");
+      if (!await hasValidRecordSignature(value)) throw new Error("签名或记录编号核验失败；未导入。");
+      return value;
+    }
+
+    async function readCachedRecords() {
+      const records = await databaseRequest("records", "readonly", (store) => store.getAll());
+      return records || [];
+    }
+
+    async function upsertSharedRecord(record) {
+      const response = await fetch("/api/records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
+      if (!response.ok) {
+        let message = `共享本机记录服务返回 HTTP ${response.status}`;
+        try {
+          const result = await response.json();
+          if (result.error) message = result.error;
+        } catch {
+          // Keep the HTTP status when the response is not JSON.
+        }
+        throw new Error(message);
+      }
+    }
+
+    async function listLocalRecords() {
+      const cachedRecords = await readCachedRecords();
+      try {
+        const fetchSharedRecords = async () => {
+          const response = await fetch("/api/records", { cache: "no-store" });
+          if (!response.ok) throw new Error(`共享本机记录服务返回 HTTP ${response.status}`);
+          const records = await response.json();
+          if (!Array.isArray(records)) throw new Error("共享本机记录服务返回了无效数据");
+          return records;
+        };
+        let sharedRecords = await fetchSharedRecords();
+        const sharedRecordIds = new Set(sharedRecords.map((record) => record?.recordId).filter((recordId) => typeof recordId === "string"));
+        let migratedRecords = false;
+        for (const record of cachedRecords) {
+          if (sharedRecordIds.has(record.recordId)) continue;
+          try {
+            if (await validateImportedRecord(record)) {
+              await upsertSharedRecord(record);
+              migratedRecords = true;
+            }
+          } catch {
+            // A malformed old cache entry must not block migration of other records.
+          }
+        }
+        if (migratedRecords) sharedRecords = await fetchSharedRecords();
+        const validRecords = [];
+        for (const candidate of sharedRecords) {
+          try {
+            const record = await validateImportedRecord(candidate);
+            await databaseRequest("records", "readwrite", (store) => store.put(record));
+            validRecords.push(record);
+          } catch {
+            // Ignore invalid shared entries instead of presenting them as verified records.
+          }
+        }
+        sharedStorageError = "";
+        return validRecords.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+      } catch (error) {
+        sharedStorageError = error.message || "共享本机记录服务不可用";
+        const validCachedRecords = [];
+        for (const record of cachedRecords) {
+          try {
+            if (await validateImportedRecord(record)) validCachedRecords.push(record);
+          } catch {
+            // Ignore invalid browser cache entries.
+          }
+        }
+        return validCachedRecords.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+      }
+    }
+
+    function appendExplorerField(container, label, value, options = {}) {
+      const field = document.createElement("div");
+      field.className = `explorer-field${options.fullWidth ? " full-width" : ""}`;
+      const term = document.createElement("dt");
+      term.textContent = label;
+      const description = document.createElement("dd");
+      if (options.code) {
+        const code = document.createElement("code");
+        code.textContent = value;
+        description.append(code);
+      } else {
+        description.textContent = value;
+      }
+      field.append(term, description);
+      container.append(field);
+    }
+
+    function renderLocalExplorer() {
+      const query = elements.record_search.value.trim().toLocaleLowerCase();
+      const version = elements.record_version_filter.value;
+      const records = loadedLocalRecords.filter((record) => {
+        if (version !== "all" && record.protocolVersion !== version) return false;
+        if (!query) return true;
+        return Object.values(record).some((value) => typeof value === "string" && value.toLocaleLowerCase().includes(query));
+      });
+      elements.record_result_count.textContent = `${records.length} / ${loadedLocalRecords.length} 条记录`;
+      elements.clear_record_search.disabled = !elements.record_search.value && version === "all";
+      const openRecordIds = new Set(
+        [...elements.local_record_list.querySelectorAll(".explorer-entry[open]")].map((entry) => entry.dataset.recordId),
+      );
+      elements.local_record_list.replaceChildren();
+      if (records.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "explorer-empty";
+        empty.textContent = loadedLocalRecords.length === 0 ? "本机还没有记录；完成登记或导入签名 JSON 后会显示在这里。" : "没有匹配记录，试试其他关键词或清除筛选。";
+        elements.local_record_list.append(empty);
+        return;
+      }
+
+      for (const record of records) {
+        const item = document.createElement("li");
+        const disclosure = document.createElement("details");
+        disclosure.className = "explorer-entry";
+        disclosure.dataset.recordId = record.recordId;
+        disclosure.open = openRecordIds.has(record.recordId);
+        const summary = document.createElement("summary");
+        const title = document.createElement("span");
+        title.className = "explorer-title";
+        title.textContent = record.workTitle;
+        const signatureValid = recordVerificationCache.get(record.recordId)?.valid === true;
+        const status = document.createElement("span");
+        status.className = `local-status${signatureValid ? "" : " invalid"}`;
+        status.textContent = signatureValid ? "签名有效" : "签名无效";
+        const metadata = document.createElement("span");
+        metadata.className = "explorer-meta";
+        metadata.textContent = `${record.protocolVersion.endsWith("v2") ? "V2" : "V1"} · ${record.createdAt} · SHA-256 ${record.fingerprint.slice(0, 16)}…`;
+        summary.append(title, status, metadata);
+
+        const detail = document.createElement("dl");
+        detail.className = "explorer-detail";
+        appendExplorerField(detail, "本机状态", "仅本机保存，未同步到区块链");
+        appendExplorerField(detail, "协议版本", record.protocolVersion);
+        appendExplorerField(detail, "登记时间（设备时间）", record.createdAt);
+        appendExplorerField(detail, "记录编号", record.recordId, { code: true, fullWidth: true });
+        appendExplorerField(detail, "文件 SHA-256", record.fingerprint, { code: true, fullWidth: true });
+        appendExplorerField(detail, "文件大小", formatBytes(record.fileSize));
+        appendExplorerField(detail, "哈希算法", record.hashAlgorithm);
+        appendExplorerField(detail, "作品名称", record.workTitle);
+        appendExplorerField(detail, "声明人", record.claimant);
+        if (record.protocolVersion === "yuanlai-local-record-v2") {
+          appendExplorerField(detail, "声明身份", claimantRoleLabel(record.claimantRole) || "未指定");
+          appendExplorerField(detail, "签署声明", record.declarationText || "", { fullWidth: true });
+        }
+        appendExplorerField(detail, "签名公钥", record.signerPublicKey, { code: true, fullWidth: true });
+        appendExplorerField(detail, "Ed25519 签名", record.signature, { code: true, fullWidth: true });
+        const actions = document.createElement("div");
+        actions.className = "explorer-actions";
+        const verify = document.createElement("button");
+        verify.className = "button";
+        verify.type = "button";
+        verify.textContent = "选择文件核验";
+        verify.disabled = !signatureValid;
+        verify.addEventListener("click", () => openRecordVerification(record));
+        const exportRecord = document.createElement("button");
+        exportRecord.className = "button secondary";
+        exportRecord.type = "button";
+        exportRecord.textContent = "导出签名 JSON";
+        exportRecord.disabled = !signatureValid;
+        exportRecord.addEventListener("click", () => downloadSignedRecord(record).catch((error) => setError(error.message)));
+        actions.append(verify, exportRecord);
+        detail.append(actions);
+        disclosure.append(summary, detail);
+        item.append(disclosure);
+        elements.local_record_list.append(item);
+      }
+    }
+
+    async function renderLocalRecords() {
+      loadedLocalRecords = await listLocalRecords();
+      elements.local_record_count.textContent = `${loadedLocalRecords.length} 条`;
+      elements.local_key_note.textContent = sharedStorageError
+        ? `共享本机记录服务不可用（${sharedStorageError}）；当前仅显示本浏览器缓存，其他浏览器可能看不到新记录。`
+        : "本机共享记录已连接；同一台电脑上通过此地址打开的浏览器都可查看。签名私钥仍只保存在创建记录的浏览器。";
+      renderLocalExplorer();
+    }
+
+    function resetVerificationResult() {
+      elements.verification_result.hidden = true;
+      elements.verification_result.dataset.state = "";
+      elements.verify_result_summary.textContent = "";
+      elements.verify_signature_result.textContent = "待核验";
+      elements.verify_fingerprint_result.textContent = "待核验";
+    }
+
+    function openRecordVerification(record) {
+      activeVerificationRecord = record;
+      elements.verify_record_title.textContent = record.workTitle;
+      elements.verify_record_claimant.textContent = record.claimant;
+      elements.verify_record_role.textContent = claimantRoleLabel(record.claimantRole) || "旧版记录未包含此字段";
+      elements.verify_record_declaration.textContent = record.declarationText || "旧版记录不包含声明正文。";
+      elements.verify_record_hash.textContent = record.fingerprint;
+      elements.verify_record_size.textContent = formatBytes(record.fileSize);
+      elements.verify_record_id.textContent = record.recordId;
+      elements.verify_file_input.value = "";
+      elements.verify_file_name.textContent = "尚未选择文件";
+      elements.verify_run.disabled = true;
+      resetVerificationResult();
+      elements.verify_dialog.showModal();
+    }
+
+    async function verifySelectedRecordFile() {
+      const record = activeVerificationRecord;
+      const file = elements.verify_file_input.files?.[0];
+      if (!record || !file) return;
+      elements.verify_run.disabled = true;
+      elements.verify_file_input.disabled = true;
+      elements.verify_run.textContent = "正在核验…";
+      elements.verification_result.hidden = false;
+      elements.verification_result.dataset.state = "";
+      elements.verify_result_summary.textContent = "正在验证记录签名并计算文件 SHA-256…";
+      try {
+        if (file.size > MAX_FILE_BYTES) throw new Error("原型暂不处理超过 50 MiB 的文件。");
+        const [signatureValid, digest] = await Promise.all([
+          verifyRecordSignature(record),
+          crypto.subtle.digest("SHA-256", await file.arrayBuffer()),
+        ]);
+        const fileMatches = file.size === record.fileSize && toHex(new Uint8Array(digest)) === record.fingerprint;
+        elements.verify_signature_result.textContent = signatureValid ? "有效" : "无效";
+        elements.verify_fingerprint_result.textContent = fileMatches ? "匹配" : "不匹配";
+        const valid = signatureValid && fileMatches;
+        elements.verification_result.dataset.state = valid ? "success" : "failure";
+        elements.verify_result_summary.textContent = valid
+          ? "核验通过：签名有效，所选文件与记录一致。"
+          : "核验未通过：请查看下方签名和文件指纹结果。";
+      } catch (error) {
+        elements.verification_result.dataset.state = "failure";
+        elements.verify_signature_result.textContent = "未完成";
+        elements.verify_fingerprint_result.textContent = "未完成";
+        elements.verify_result_summary.textContent = error.message || "核验失败，请重试。";
+      } finally {
+        elements.verify_file_input.disabled = false;
+        elements.verify_run.disabled = !elements.verify_file_input.files?.[0];
+        elements.verify_run.textContent = "重新核验";
+      }
+    }
+
+    const formatBytes = (bytes) => {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MiB`;
+    };
+    const toHex = (bytes) => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    const claimantRoleLabel = (role) => ({
+      creator: "创作者之一",
+      "rights-holder": "自述权利人",
+      "authorized-agent": "自述受托/授权代理人",
+      other: "其他身份",
+    })[role] || "";
+
+    function setError(message) {
+      elements.error.textContent = message;
+      elements.error.classList.toggle("visible", Boolean(message));
+    }
+
+    function updateGenerateState() {
+      elements.generate.disabled = !selectedFile
+        || !fingerprint
+        || !elements.work_title.value.trim()
+        || !elements.claimant.value.trim()
+        || !elements.declaration_text.value.trim()
+        || !elements.claim_confirmed.checked;
+    }
+
+    async function selectFile(file) {
+      const selectionVersion = ++fileSelectionVersion;
+      elements.claim_confirmed.checked = false;
+      setError("");
+      selectedFile = null;
+      localRecord = null;
+      fingerprint = null;
+      elements.download.disabled = true;
+      elements.download_record.disabled = true;
+      elements.certificate_status.textContent = "本机预览 · 尚未签名";
+      elements.result_meta.classList.remove("visible");
+      elements.preview_hash.textContent = file ? "正在计算…" : "选择文件后生成";
+      elements.preview_hash.classList.add("empty-preview");
+      elements.preview_time.textContent = "登记时间由系统生成";
+      elements.preview_id.textContent = "本地编号：尚未生成";
+      elements.progress.classList.remove("visible");
+      renderLocalRecords().catch((error) => setError(`无法读取本机记录：${error.message}`));
+      if (!file) {
+        elements.file_meta.classList.remove("visible");
+        updateGenerateState();
+        return;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        elements.file_input.value = "";
+        elements.file_meta.classList.remove("visible");
+        elements.preview_hash.textContent = "选择文件后生成";
+        elements.preview_hash.classList.add("empty-preview");
+        setError("原型暂不处理超过 50 MiB 的文件。该限制只用于控制浏览器内存，正式上限尚未确定。");
+        updateGenerateState();
+        return;
+      }
+      selectedFile = file;
+      elements.file_name.textContent = file.name || "未命名文件";
+      elements.file_size.textContent = `${formatBytes(file.size)} · 正在本机计算指纹`;
+      elements.file_meta.classList.add("visible");
+      elements.progress.textContent = "正在读取文件字节并计算 SHA-256…";
+      elements.progress.classList.add("visible");
+      updateGenerateState();
+      try {
+        if (!globalThis.crypto?.subtle) throw new Error("当前环境不支持 Web Crypto；请在安全上下文中打开此页面。");
+        const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+        if (selectionVersion !== fileSelectionVersion) return;
+        fingerprint = toHex(new Uint8Array(digest));
+        elements.file_size.textContent = `${formatBytes(file.size)} · SHA-256 已就绪`;
+        elements.preview_hash.textContent = fingerprint;
+        elements.preview_hash.classList.remove("empty-preview");
+        elements.progress.textContent = "指纹仅在本机生成；当前没有上传或联网操作。";
+      } catch (error) {
+        if (selectionVersion !== fileSelectionVersion) return;
+        fingerprint = null;
+        setError(error.message || "无法计算文件指纹。");
+        elements.progress.classList.remove("visible");
+      }
+      updateGenerateState();
+      renderLocalRecords().catch((error) => setError(`无法读取本机记录：${error.message}`));
+    }
+
+    function updateTextPreview() {
+      elements.claim_confirmed.checked = false;
+      const title = elements.work_title.value.trim();
+      const claimant = elements.claimant.value.trim();
+      const role = claimantRoleLabel(elements.claimant_role.value);
+      const declaration = elements.declaration_text.value.trim();
+      localRecord = null;
+      elements.result_meta.classList.remove("visible");
+      elements.download.disabled = true;
+      elements.preview_time.textContent = "登记时间由系统生成";
+      elements.preview_id.textContent = "本地编号：尚未生成";
+      elements.certificate_status.textContent = "本机预览 · 尚未签名";
+      elements.download_record.disabled = true;
+      elements.preview_work.textContent = title || "作品名称将在此显示";
+      elements.preview_owner.textContent = claimant ? `声明人：${claimant}${role ? ` · ${role}` : ""}` : "声明人将在此显示";
+      elements.preview_declaration.textContent = declaration ? `声明节选：${declaration}` : "";
+      elements.preview_work.classList.toggle("empty-preview", !title);
+      elements.preview_owner.classList.toggle("empty-preview", !claimant);
+      updateGenerateState();
+    }
+
+    async function makeLocalRecord() {
+      setError("");
+      const file = selectedFile;
+      const currentFingerprint = fingerprint;
+      const workTitle = elements.work_title.value.trim();
+      const claimant = elements.claimant.value.trim();
+      const claimantRole = elements.claimant_role.value;
+      const declarationText = elements.declaration_text.value.trim();
+      const selectionVersion = fileSelectionVersion;
+      if (!file || !currentFingerprint || !workTitle || !claimant || !claimantRole || !declarationText || !elements.claim_confirmed.checked) return;
+      const createdAt = new Date().toISOString();
+      const nonce = toHex(crypto.getRandomValues(new Uint8Array(16)));
+      const keys = await getSigningKey();
+      const statement = {
+        protocolVersion: "yuanlai-local-record-v2",
+        hashAlgorithm: "SHA-256",
+        fingerprint: currentFingerprint,
+        fileSize: file.size,
+        workTitle,
+        claimant,
+        claimantRole,
+        declarationText,
+        createdAt,
+        nonce,
+        signerPublicKey: keys.publicKey,
+      };
+      const signature = toHex(new Uint8Array(await crypto.subtle.sign("Ed25519", keys.privateKey, signingBytes(statement))));
+      if (
+        selectionVersion !== fileSelectionVersion
+        || selectedFile !== file
+        || fingerprint !== currentFingerprint
+        || elements.work_title.value.trim() !== workTitle
+        || elements.claimant.value.trim() !== claimant
+        || elements.claimant_role.value !== claimantRole
+        || elements.declaration_text.value.trim() !== declarationText
+        || !elements.claim_confirmed.checked
+      ) return;
+      localRecord = { ...statement, signature };
+      localRecord.recordId = await calculateRecordId(localRecord);
+      await databaseRequest("records", "readwrite", (store) => store.put(localRecord));
+      let sharedRecordSaved = true;
+      try {
+        await upsertSharedRecord(localRecord);
+      } catch (error) {
+        sharedRecordSaved = false;
+        sharedStorageError = error.message || "共享本机记录服务不可用";
+      }
+      elements.preview_time.textContent = `本地生成时间：${new Date(createdAt).toLocaleString()}（非链上时间）`;
+      elements.preview_id.textContent = `本地编号：${localRecord.recordId.slice(0, 20)}…`;
+      elements.record_id.textContent = localRecord.recordId;
+      elements.certificate_status.textContent = "ED25519 签名有效\n本机记录";
+      elements.result_meta.classList.add("visible");
+      elements.download.disabled = false;
+      elements.download_record.disabled = false;
+      elements.progress.textContent = sharedRecordSaved
+        ? "记录已签名并保存到本机共享存储；这台电脑上的其他浏览器也可查看。"
+        : `记录已保存在当前浏览器，但未写入共享存储：${sharedStorageError}`;
+      elements.progress.classList.add("visible");
+      await renderLocalRecords();
+    }
+
+    function drawWrapped(context, text, x, y, maxWidth, lineHeight, maxLines = 3) {
+      let line = "";
+      let lineCount = 0;
+      for (const character of text) {
+        const candidate = line + character;
+        if (context.measureText(candidate).width > maxWidth && line) {
+          context.fillText(line, x, y + lineCount * lineHeight);
+          lineCount += 1;
+          line = character;
+          if (lineCount >= maxLines) return;
+        } else {
+          line = candidate;
+        }
+      }
+      if (line && lineCount < maxLines) context.fillText(line, x, y + lineCount * lineHeight);
+    }
+
+    async function downloadCertificate() {
+      if (!localRecord) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = 1400;
+      canvas.height = 1800;
+      const context = canvas.getContext("2d");
+      const paper = new Image();
+      paper.src = new URL("certificate-paper.svg", document.baseURI).href;
+      await paper.decode();
+      context.drawImage(paper, 0, 0, canvas.width, canvas.height);
+      context.strokeStyle = "#b18b4a";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(154, 150, 36, 0, Math.PI * 2);
+      context.stroke();
+      context.fillStyle = "#805f29";
+      context.font = "700 24px Georgia, serif";
+      context.textAlign = "center";
+      context.fillText("YL", 154, 158);
+      context.textAlign = "left";
+      context.fillStyle = "#173b35";
+      context.font = "600 28px Georgia, serif";
+      context.fillText("猿来 · 原链", 212, 143);
+      context.fillStyle = "#62736e";
+      context.font = "13px monospace";
+      context.fillText("LOCAL FILE REGISTRY", 212, 168);
+      context.textAlign = "right";
+      context.fillStyle = "#62736e";
+      context.font = "13px monospace";
+      context.fillText("RECORD SERIES", 1250, 137);
+      context.fillStyle = "#173b35";
+      context.font = "700 16px monospace";
+      context.fillText(localRecord.protocolVersion === "yuanlai-local-record-v2" ? "LOCAL · V2" : "LOCAL · V1", 1250, 164);
+      context.textAlign = "left";
+      context.strokeStyle = "rgba(23, 59, 53, .3)";
+      context.lineWidth = 2;
+      context.beginPath(); context.moveTo(130, 250); context.lineTo(1270, 250); context.stroke();
+      context.fillStyle = "#89692f";
+      context.font = "14px monospace";
+      context.fillText("CRYPTOGRAPHIC FILE RECORD", 142, 340);
+      context.fillStyle = "#17312d";
+      context.font = "48px Georgia, serif";
+      drawWrapped(context, localRecord.workTitle, 142, 416, 860, 58, 2);
+      context.fillStyle = "#62736e";
+      context.font = "21px Arial, sans-serif";
+      drawWrapped(context, `声明人：${localRecord.claimant}`, 142, 548, 850, 32, 2);
+      context.fillStyle = "#62736e";
+      context.font = "16px Arial, sans-serif";
+      drawWrapped(context, `身份：${claimantRoleLabel(localRecord.claimantRole) || "旧版记录未包含"}`, 142, 580, 850, 22, 1);
+      context.fillStyle = "#17312d";
+      context.font = "16px Arial, sans-serif";
+      drawWrapped(context, `声明节选：${localRecord.declarationText || "旧版记录不包含声明正文。"}`, 142, 612, 850, 22, 2);
+
+      context.save();
+      context.translate(1110, 458);
+      context.rotate(-0.12);
+      context.strokeStyle = "rgba(137, 105, 47, .72)";
+      context.lineWidth = 2;
+      for (let petal = 0; petal < 12; petal += 1) {
+        context.save();
+        context.rotate((Math.PI * 2 * petal) / 12);
+        context.beginPath();
+        context.ellipse(0, -76, 38, 76, 0, 0, Math.PI * 2);
+        context.stroke();
+        context.restore();
+      }
+      context.beginPath(); context.arc(0, 0, 116, 0, Math.PI * 2); context.stroke();
+      context.beginPath(); context.arc(0, 0, 103, 0, Math.PI * 2); context.stroke();
+      context.fillStyle = "#805f29";
+      context.textAlign = "center";
+      context.font = "700 38px Georgia, serif";
+      context.fillText("YL", 0, 6);
+      context.font = "12px monospace";
+      context.fillText("LOCAL RECORD", 0, 30);
+      context.restore();
+
+      context.strokeStyle = "rgba(23, 59, 53, .28)";
+      context.beginPath(); context.moveTo(130, 650); context.lineTo(1270, 650); context.stroke();
+      context.fillStyle = "#62736e";
+      context.font = "14px monospace";
+      context.fillText("SHA-256 · FILE FINGERPRINT", 142, 704);
+      context.fillStyle = "#173b35";
+      context.font = "22px monospace";
+      for (let row = 0; row < 4; row += 1) context.fillText(localRecord.fingerprint.slice(row * 16, row * 16 + 16), 142, 760 + row * 38);
+
+      context.strokeStyle = "rgba(23, 59, 53, .18)";
+      context.beginPath(); context.moveTo(130, 940); context.lineTo(1270, 940); context.stroke();
+      context.fillStyle = "#62736e";
+      context.font = "12px monospace";
+      context.fillText("FILE SIZE", 142, 985);
+      context.fillText("DEVICE TIME · NOT A TRUSTED TIMESTAMP", 522, 985);
+      context.fillText("LOCAL RECORD ID", 142, 1080);
+      context.fillStyle = "#17312d";
+      context.font = "18px Arial, sans-serif";
+      context.fillText(formatBytes(localRecord.fileSize), 142, 1018);
+      context.fillText(new Date(localRecord.createdAt).toLocaleString(), 522, 1018);
+      context.font = "14px monospace";
+      drawWrapped(context, localRecord.recordId, 142, 1112, 1100, 22, 2);
+
+      context.strokeStyle = "rgba(23, 59, 53, .18)";
+      context.beginPath(); context.moveTo(130, 1195); context.lineTo(1270, 1195); context.stroke();
+      context.fillStyle = "#62736e";
+      context.font = "12px monospace";
+      context.fillText("SIGNER PUBLIC KEY · ED25519", 142, 1238);
+      context.fillStyle = "#17312d";
+      context.font = "14px monospace";
+      drawWrapped(context, localRecord.signerPublicKey, 142, 1265, 1100, 20, 2);
+      context.fillStyle = "#62736e";
+      context.font = "12px monospace";
+      context.fillText("ED25519 SIGNATURE", 142, 1325);
+      context.fillStyle = "#17312d";
+      context.font = "12px monospace";
+      drawWrapped(context, localRecord.signature, 142, 1352, 1100, 17, 3);
+
+      context.strokeStyle = "rgba(23, 59, 53, .3)";
+      context.beginPath(); context.moveTo(130, 1530); context.lineTo(1270, 1530); context.stroke();
+      context.fillStyle = "#62736e";
+      context.font = "14px Arial, sans-serif";
+      drawWrapped(context, "签名用于核验密钥与声明内容；不代表身份、著作权或官方认证。设备时间由本机提供，不是可信时间戳。", 142, 1580, 790, 25, 3);
+      context.strokeStyle = "#8b3f31";
+      context.strokeRect(1010, 1565, 210, 96);
+      context.fillStyle = "#8b3f31";
+      context.textAlign = "center";
+      context.font = "700 14px monospace";
+      context.fillText("ED25519 · VALID", 1115, 1602);
+      context.font = "12px monospace";
+      context.fillText("LOCAL SIGNED RECORD", 1115, 1630);
+      context.textAlign = "left";
+      context.fillStyle = "#62736e";
+      context.font = "12px monospace";
+      context.fillText("NO NETWORK RECEIPT · LOCAL DEVICE TIME", 142, 1690);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) {
+        setError("浏览器无法生成 PNG，请重试。");
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `yuanlai-local-${localRecord.recordId.slice(0, 12)}.png`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }
+
+    async function downloadSignedRecord(record = localRecord) {
+      if (!record || !await verifyRecordSignature(record)) {
+        setError("无法导出：本机记录签名核验失败。");
+        return;
+      }
+      const blob = new Blob([`${JSON.stringify(record, null, 2)}\n`], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `yuanlai-local-${record.recordId.slice(0, 12)}.json`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }
+
+    async function importSignedRecord(file) {
+      if (!file) return;
+      if (file.size > 1024 * 1024) throw new Error("签名记录 JSON 不得超过 1 MiB。");
+      let parsed;
+      try {
+        parsed = JSON.parse(await file.text());
+      } catch {
+        throw new Error("无法解析 JSON 文件。");
+      }
+      const record = await validateImportedRecord(parsed);
+      await databaseRequest("records", "readwrite", (store) => store.put(record));
+      await renderLocalRecords();
+      elements.progress.textContent = `已验证并导入签名记录 ${record.recordId}；原始文件仍需单独选择后核验指纹。`;
+      elements.progress.classList.add("visible");
+      setError("");
+    }
+
+    function clearForm() {
+      selectedFile = null;
+      fingerprint = null;
+      localRecord = null;
+      elements.file_input.value = "";
+      elements.file_meta.classList.remove("visible");
+      elements.progress.classList.remove("visible");
+      elements.result_meta.classList.remove("visible");
+      elements.download.disabled = true;
+      elements.download_record.disabled = true;
+      elements.preview_hash.textContent = "选择文件后生成";
+      elements.preview_hash.classList.add("empty-preview");
+      elements.preview_time.textContent = "登记时间由系统生成";
+      elements.preview_id.textContent = "本地编号：尚未生成";
+      elements.certificate_status.textContent = "本机预览 · 尚未签名";
+      elements.work_title.value = "";
+      elements.claimant.value = "";
+      elements.claimant_role.value = "creator";
+      elements.declaration_text.value = "";
+      elements.claim_confirmed.checked = false;
+      setError("");
+      updateTextPreview();
+    }
+
+    elements.choose_file.addEventListener("click", () => elements.file_input.click());
+    elements.file_input.addEventListener("change", (event) => selectFile(event.target.files?.[0]));
+    elements.work_title.addEventListener("input", updateTextPreview);
+    elements.claimant.addEventListener("input", updateTextPreview);
+    elements.claimant_role.addEventListener("change", updateTextPreview);
+    elements.declaration_text.addEventListener("input", updateTextPreview);
+    elements.claim_confirmed.addEventListener("change", updateGenerateState);
+    elements.generate.addEventListener("click", () => makeLocalRecord().catch((error) => setError(error.message)));
+    elements.download.addEventListener("click", () => downloadCertificate().catch((error) => setError(error.message)));
+    elements.download_record.addEventListener("click", () => downloadSignedRecord().catch((error) => setError(error.message)));
+    elements.import_record.addEventListener("click", () => elements.import_record_input.click());
+    elements.record_search.addEventListener("input", renderLocalExplorer);
+    elements.record_version_filter.addEventListener("change", renderLocalExplorer);
+    elements.clear_record_search.addEventListener("click", () => {
+      elements.record_search.value = "";
+      elements.record_version_filter.value = "all";
+      renderLocalExplorer();
+      elements.record_search.focus();
+    });
+    elements.refresh_records.addEventListener("click", () => {
+      elements.refresh_records.disabled = true;
+      renderLocalRecords()
+        .catch((error) => setError(`无法刷新本机记录：${error.message}`))
+        .finally(() => { elements.refresh_records.disabled = false; });
+    });
+    elements.import_record_input.addEventListener("change", (event) => {
+      importSignedRecord(event.target.files?.[0]).catch((error) => setError(error.message));
+      event.target.value = "";
+    });
+    elements.verify_close.addEventListener("click", () => elements.verify_dialog.close());
+    elements.verify_file_input.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      elements.verify_file_name.textContent = file ? `${file.name || "未命名文件"} · ${formatBytes(file.size)}` : "尚未选择文件";
+      elements.verify_run.disabled = !file;
+      elements.verify_run.textContent = "开始核验";
+      resetVerificationResult();
+    });
+    elements.verify_run.addEventListener("click", () => verifySelectedRecordFile());
+    elements.verify_dialog.addEventListener("close", () => {
+      activeVerificationRecord = null;
+      elements.verify_file_input.value = "";
+      elements.verify_file_input.disabled = false;
+      elements.verify_run.disabled = true;
+      elements.verify_run.textContent = "开始核验";
+      resetVerificationResult();
+    });
+    elements.export_key_backup.addEventListener("click", () => exportSigningKeyBackup().catch((error) => setError(error.message)));
+    elements.rotate_signing_key.addEventListener("click", async () => {
+      const confirmed = window.confirm("切换后，新记录将由新公钥签名。旧记录仍可独立验证，但旧版不可导出密钥无法恢复。确定继续？");
+      if (!confirmed) return;
+      try {
+        const signingKey = await createAndActivateSigningKey();
+        elements.progress.textContent = `已切换新签名密钥：${signingKey.publicKey.slice(0, 16)}…；请立即导出加密备份。`;
+        elements.progress.classList.add("visible");
+        setError("");
+      } catch (error) {
+        setError(error.message);
+      }
+    });
+    elements.restore_key_backup.addEventListener("click", () => elements.key_backup_file.click());
+    elements.key_backup_file.addEventListener("change", (event) => {
+      restoreSigningKeyBackup(event.target.files?.[0]).catch((error) => setError(error.message));
+      event.target.value = "";
+    });
+    elements.clear.addEventListener("click", clearForm);
+    elements.dropzone.addEventListener("dragover", (event) => { event.preventDefault(); elements.dropzone.classList.add("dragover"); });
+    elements.dropzone.addEventListener("dragleave", () => elements.dropzone.classList.remove("dragover"));
+    elements.dropzone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      elements.dropzone.classList.remove("dragover");
+      selectFile(event.dataTransfer?.files?.[0]);
+    });
+    renderLocalRecords().catch((error) => setError(`无法初始化本机记录：${error.message}`));
+    window.setInterval(() => renderLocalRecords().catch((error) => setError(`无法刷新本机记录：${error.message}`)), 5_000);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        renderLocalRecords().catch((error) => setError(`无法刷新本机记录：${error.message}`));
+      }
+    });
+  </script>
+</body>
+</html>

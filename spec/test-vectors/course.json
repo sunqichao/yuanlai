@@ -1,0 +1,250 @@
+{
+  "auto_cancel_record": {
+    "encoding": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c280000000000000002000000000000002600000000000000",
+    "fee": 2,
+    "locked": 40,
+    "owner": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c",
+    "restored": 38,
+    "session_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "cancel_fees": [
+    {
+      "fee": 1,
+      "locked": 1
+    },
+    {
+      "fee": 2,
+      "locked": 2
+    },
+    {
+      "fee": 2,
+      "locked": 3
+    },
+    {
+      "fee": 2,
+      "locked": 30
+    },
+    {
+      "fee": 2,
+      "locked": 39
+    },
+    {
+      "fee": 2,
+      "locked": 40
+    },
+    {
+      "fee": 2,
+      "locked": 41
+    },
+    {
+      "fee": 3,
+      "locked": 60
+    },
+    {
+      "fee": 20,
+      "locked": 400
+    }
+  ],
+  "course_roots": [
+    {
+      "entries": [
+        {
+          "content_hash": "0101010101010101010101010101010101010101010101010101010101010101",
+          "path": "a",
+          "size": 1
+        }
+      ],
+      "root": "ee74f37af9c1dc13dfeb72a91c005f8d6e444268a6210d0c2dec39b8ebb70b23"
+    },
+    {
+      "entries": [
+        {
+          "content_hash": "0202020202020202020202020202020202020202020202020202020202020202",
+          "path": "第2章/b.mp4",
+          "size": 7340032
+        },
+        {
+          "content_hash": "0101010101010101010101010101010101010101010101010101010101010101",
+          "path": "第1章/a.mp4",
+          "size": 3145728
+        },
+        {
+          "content_hash": "0303030303030303030303030303030303030303030303030303030303030303",
+          "path": "讲义.pdf",
+          "size": 1
+        }
+      ],
+      "root": "71d6661210b9468cd8db04e27823271892fc394ed1aaeda31d1fcd6e2bae7032"
+    },
+    {
+      "entries": [
+        {
+          "content_hash": "0404040404040404040404040404040404040404040404040404040404040404",
+          "path": "Z",
+          "size": 0
+        },
+        {
+          "content_hash": "0505050505050505050505050505050505050505050505050505050505050505",
+          "path": "a",
+          "size": 1073741824
+        },
+        {
+          "content_hash": "0606060606060606060606060606060606060606060606060606060606060606",
+          "path": "é",
+          "size": 1073741825
+        },
+        {
+          "content_hash": "0707070707070707070707070707070707070707070707070707070707070707",
+          "path": "é",
+          "size": 2
+        }
+      ],
+      "root": "9a1094c80f1128560f77df3b9b458f136be434d28cecab9598b86d57fc725dda"
+    }
+  ],
+  "description": "Course roots, pricing, lock bounds, cancel fees, path rules, AutoCancelRecord encoding (spec/05)",
+  "paths": [
+    {
+      "error": null,
+      "path": "a"
+    },
+    {
+      "error": null,
+      "path": "a/b"
+    },
+    {
+      "error": null,
+      "path": "第1章/视频.mp4"
+    },
+    {
+      "error": null,
+      "path": ".hidden"
+    },
+    {
+      "error": null,
+      "path": "a/..b"
+    },
+    {
+      "error": null,
+      "path": "..."
+    },
+    {
+      "error": "CRS-PATH-01",
+      "path": ""
+    },
+    {
+      "error": "CRS-PATH-01",
+      "path": "/a"
+    },
+    {
+      "error": "CRS-PATH-01",
+      "path": "a/"
+    },
+    {
+      "error": "CRS-PATH-01",
+      "path": "a//b"
+    },
+    {
+      "error": "CRS-PATH-02",
+      "path": "."
+    },
+    {
+      "error": "CRS-PATH-02",
+      "path": ".."
+    },
+    {
+      "error": "CRS-PATH-02",
+      "path": "a/./b"
+    },
+    {
+      "error": "CRS-PATH-02",
+      "path": "a/../b"
+    },
+    {
+      "error": "CRS-PATH-03",
+      "path": "a\\b"
+    }
+  ],
+  "pricing": [
+    {
+      "bytes": 0,
+      "cost": 31,
+      "files": 1,
+      "lock_bounds": [
+        31,
+        37
+      ],
+      "update": false
+    },
+    {
+      "bytes": 1,
+      "cost": 36,
+      "files": 1,
+      "lock_bounds": [
+        36,
+        43
+      ],
+      "update": false
+    },
+    {
+      "bytes": 2147483648,
+      "cost": 50,
+      "files": 10,
+      "lock_bounds": [
+        50,
+        60
+      ],
+      "update": false
+    },
+    {
+      "bytes": 12884901888,
+      "cost": 130,
+      "files": 40,
+      "lock_bounds": [
+        130,
+        156
+      ],
+      "update": false
+    },
+    {
+      "bytes": 1073741824,
+      "cost": 38,
+      "files": 3,
+      "lock_bounds": [
+        38,
+        45
+      ],
+      "update": false
+    },
+    {
+      "bytes": 1073741825,
+      "cost": 43,
+      "files": 3,
+      "lock_bounds": [
+        43,
+        51
+      ],
+      "update": false
+    },
+    {
+      "bytes": 1,
+      "cost": 21,
+      "files": 1,
+      "lock_bounds": [
+        21,
+        25
+      ],
+      "update": true
+    },
+    {
+      "bytes": 0,
+      "cost": 20,
+      "files": 5,
+      "lock_bounds": [
+        20,
+        24
+      ],
+      "update": true
+    }
+  ]
+}

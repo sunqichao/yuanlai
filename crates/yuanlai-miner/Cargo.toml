@@ -1,0 +1,18 @@
+[package]
+name = "yuanlai-miner"
+description = "Proof-of-work block producer for YuanLai"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+yuanlai-codec.workspace = true
+yuanlai-crypto.workspace = true
+yuanlai-types.workspace = true
+yuanlai-consensus.workspace = true
+
+[lints]
+workspace = true
