@@ -18,7 +18,7 @@ Python 3 is required. From the repository root, run:
 python3 web/v2-prototype/run_local.py
 ```
 
-Open <http://127.0.0.1:18765/>. After registration, “本机浏览器” (Local Explorer) searches titles, declarations, record IDs, and fingerprints; filters V1/V2 records; shows signature details; exports JSON; and verifies a selected source file. The prototype has a 50 MiB file limit, and its service binds only to `127.0.0.1`. See the [prototype guide](web/v2-prototype/README.md) for key management and limitations.
+Open <http://127.0.0.1:18765/>. After registration, “本机浏览器” (Local Explorer) searches titles, declarations, record IDs, and fingerprints; filters V1/V2 records; shows signature details; exports JSON; and verifies a selected source file. The prototype limit is 500 MiB; hashing currently reads the whole file into memory, so larger files can create significant memory pressure. The service binds only to `127.0.0.1`. See the [prototype guide](web/v2-prototype/README.md) for key management and limitations.
 
 ## Roadmap and Design
 

@@ -250,7 +250,7 @@
       <div><p class="eyebrow">登记流程验证 · V2</p><h1>建立作品指纹记录</h1></div>
       <p class="intro-note">选择原始文件，在本机计算 SHA-256；用本机密钥签名并保存声明，之后可离线核验文件或导入的签名记录。</p>
     </section>
-    <p class="prototype-notice"><strong>本机模式：</strong>签名记录保存在这台电脑的共享文件中；使用同一个本机地址打开的不同浏览器都能查看。签名密钥默认由各浏览器分别保管，可通过口令加密备份迁移。文件只在本机计算，不会上传；尚未接入联网同步。设备时间不证明最早创作人，记录也不证明法律著作权。文件上限 50 MiB，最终上限待性能测试确定。</p>
+    <p class="prototype-notice"><strong>本机模式：</strong>签名记录保存在这台电脑的共享文件中；使用同一个本机地址打开的不同浏览器都能查看。签名密钥默认由各浏览器分别保管，可通过口令加密备份迁移。文件只在本机计算，不会上传；尚未接入联网同步。设备时间不证明最早创作人，记录也不证明法律著作权。文件上限 500 MiB；当前整块读入内存计算，较大文件可能导致浏览器内存压力。</p>
 
     <div id="record-form" class="workspace">
       <section class="form-panel" aria-labelledby="form-title">
@@ -384,7 +384,7 @@
   </main>
   <footer><span>原链 V2 · 本机离线原型</span><span>文件不上传 · 本机签名 · 仅本机共享</span></footer>
   <script>
-    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    const MAX_FILE_BYTES = 500 * 1024 * 1024;
     const elements = Object.fromEntries([
       "dropzone", "choose-file", "file-input", "file-meta", "file-name", "file-size",
       "work-title", "claimant", "claimant-role", "declaration-text", "claim-confirmed", "progress", "error", "generate", "clear", "preview-work",
@@ -897,7 +897,7 @@
       elements.verification_result.dataset.state = "";
       elements.verify_result_summary.textContent = "正在验证记录签名并计算文件 SHA-256…";
       try {
-        if (file.size > MAX_FILE_BYTES) throw new Error("原型暂不处理超过 50 MiB 的文件。");
+        if (file.size > MAX_FILE_BYTES) throw new Error("原型暂不处理超过 500 MiB 的文件。");
         const [signatureValid, digest] = await Promise.all([
           verifyRecordSignature(record),
           crypto.subtle.digest("SHA-256", await file.arrayBuffer()),
@@ -976,7 +976,7 @@
         elements.file_meta.classList.remove("visible");
         elements.preview_hash.textContent = "选择文件后生成";
         elements.preview_hash.classList.add("empty-preview");
-        setError("原型暂不处理超过 50 MiB 的文件。该限制只用于控制浏览器内存，正式上限尚未确定。");
+        setError("原型暂不处理超过 500 MiB 的文件。当前哈希实现会将整个文件读入内存，大文件可能导致浏览器内存不足。");
         updateGenerateState();
         return;
       }
